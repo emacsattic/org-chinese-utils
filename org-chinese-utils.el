@@ -59,7 +59,7 @@
             (memq backend '(odt)))
     (let ((regexp "[[:multibyte:]]")
           (string text))
-      ;; org默认将一个换行符转换为空格，但中文不需要这个空格，删除。
+      ;; org-mode 默认将一个换行符转换为空格，但中文不需要这个空格，删除。
       (setq string
             (replace-regexp-in-string
              (format "\\(%s\\) *\n *\\(%s\\)" regexp regexp)
@@ -67,12 +67,12 @@
       ;; 删除粗体之前的空格
       (setq string
             (replace-regexp-in-string
-             (format "\\(%s\\) +\\(<\\)" regexp)
+             (format "\\(%s\\)[ \n]+\\(<\\)" regexp)
              "\\1\\2" string))
       ;; 删除粗体之后的空格
       (setq string
             (replace-regexp-in-string
-             (format "\\(>\\) +\\(%s\\)" regexp)
+             (format "\\(>\\)[ \n]+\\(%s\\)" regexp)
              "\\1\\2" string))
       string)))
 
