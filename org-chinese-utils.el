@@ -54,8 +54,9 @@
   :group 'org)
 
 (defun org-chinese-utils-clean-useless-space (text backend info)
-  "将 org file export 为 HTML 时，删除中文之间不必要的空格。"
-  (when (org-export-derived-backend-p backend 'html)
+  "导出 org file 时，删除中文之间不必要的空格。"
+  (when (or (org-export-derived-backend-p backend 'html)
+            (memq backend '(odt)))
     (let ((regexp "[[:multibyte:]]")
           (string text))
       ;; org默认将一个换行符转换为空格，但中文不需要这个空格，删除。
