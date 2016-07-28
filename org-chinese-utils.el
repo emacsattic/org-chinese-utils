@@ -133,6 +133,7 @@ Do not call this mode function yourself.  It is meant for internal use."
            (org-chinese-utils (current-buffer))))))
 (put 'org-chinese-utils-mode 'mode-class 'special)
 
+;;;###autoload
 (defun org-chinese-utils (&optional buffer)
   (interactive)
   (switch-to-buffer (get-buffer-create (or buffer "*Org-chinese-utils chooser*")))
@@ -182,6 +183,7 @@ Do not call this mode function yourself.  It is meant for internal use."
             (remove utils org-chinese-utils-enabled))
       (org-chinese-utils-deactivate (list utils)))))
 
+;;;###autoload
 (defun org-chinese-utils-activate (utils-list)
   "Activate certain utils of org-chinese-utils.
 
@@ -194,6 +196,7 @@ should be activated."
       (when (and fn hook)
         (add-hook hook fn)))))
 
+;;;###autoload
 (defun org-chinese-utils-deactivate (&optional utils-list)
   "Deactivate certain utils of org-chinese-utils.
 
@@ -208,6 +211,7 @@ be activated."
         (when (and fn hook)
           (remove-hook hook fn))))))
 
+;;;###autoload
 (defun org-chinese-utils-enable ()
   "Enable all org-chinese-utils, when DISABLE is t, disable all utils."
   (interactive)
