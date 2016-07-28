@@ -66,23 +66,23 @@
 
 (defconst org-chinese-utils-list
   '((clean-paragraph-space
-     :document "删除中文段落中，中文之间多余的空格。"
+     :document "Org 文件导出为 HTML 或 odt 文件时，删除中文段落中多余的空格。"
      :function org-chinese-utils:clean-useless-space
      :hook org-export-filter-paragraph-functions)
     (clean-headline-space
-     :document "删除中文标题中，中文之间多余的空格。"
+     :document "Org 文件导出为 HTML 或 odt 文件时，删除中文标题中多余的空格。"
      :function org-chinese-utils:clean-useless-space
      :hook org-export-filter-headline-functions)
     (align-babel-table
-     :document "当 org-babel 输出一个 org 表格时，使这个表格对齐。"
+     :document "让 org-babel 运行结果中包含的 org 表格对齐。"
      :function org-chinese-utils:align-babel-table
      :hook org-babel-after-execute-hook)
     (smart-truncate-lines
-     :document "让 'C-c C-c' 可以根据光标处的内容，智能的折行。"
+     :document "按 'C-c C-c' 快捷键时，根据光标处的内容智能折行。"
      :function org-chinese-utils:smart-truncate-lines
      :hook org-mode-hook)
     (show-babel-image
-     :document "如果 org-babel 生成一张图片，就自动显示这张图片。"
+     :document "让 org-babel 运行结果中包含的图片链接自动显示。"
      :function org-chinese-utils:show-babel-image
      :hook org-babel-after-execute-hook))
   "A list of utils that can be enabled.
@@ -94,7 +94,13 @@ A utils is a plist, which form is like:
 NAME is a symbol, which can be passed to `org-chinese-utils-activate'.
 FN is a function which will be added to HOOK.")
 
-(defvar org-chinese-utils-enabled (mapcar 'car org-chinese-utils-list))
+(defvar org-chinese-utils-enabled
+  '(clean-paragraph-space
+    clean-headline-space
+    align-babel-table
+    smart-truncate-lines
+    show-babel-image)
+  "The utils of org-chinese-utils which will be activated.")
 
 (defvar org-chinese-utils-mode-map
   (let ((map (make-keymap)))
@@ -124,6 +130,7 @@ Do not call this mode function yourself.  It is meant for internal use."
   (let ((inhibit-read-only t))
     (erase-buffer))
   (org-chinese-utils-mode)
+  (setq truncate-lines t)
   (widget-insert "Type RET or click to enable/disable utils of org-chinese-utils.\n\n")
   (widget-create 'push-button
                  :tag " Save settings! "
@@ -141,7 +148,7 @@ Do not call this mode function yourself.  It is meant for internal use."
       (widget-create-child-and-convert widget 'push-button
                                        :button-face-get 'ignore
                                        :mouse-face-get 'ignore
-                                       :value (format " %s" utils)
+                                       :value (format " %s " utils)
                                        :action 'widget-parent-action
                                        :help-echo help-echo)
       (widget-insert " -- " (plist-get (cdr (assq utils org-chinese-utils-list))
