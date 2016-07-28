@@ -80,7 +80,11 @@
     (smart-truncate-lines
      :document "让 'C-c C-c' 可以根据光标处的内容，智能的折行。"
      :function org-chinese-utils:smart-truncate-lines
-     :hook org-mode-hook))
+     :hook org-mode-hook)
+    (show-babel-image
+     :document "如果 org-babel 生成一张图片，就自动显示这张图片。"
+     :function org-chinese-utils:show-babel-image
+     :hook org-babel-after-execute-hook))
   "A list of utils that can be enabled.
 
 A utils is a plist, which form is like:
@@ -261,6 +265,9 @@ be activated."
                 (goto-char (org-table-end)))
               (forward-line))))))))
 
+(defun org-chinese-utils:show-babel-image ()
+  (when (not org-export-current-backend)
+    (org-display-inline-images)))
 ;; #+END_SRC
 
 ;; * Footer
