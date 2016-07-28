@@ -53,7 +53,33 @@
   "Some org-mode utils for Chinese users."
   :group 'org)
 
-(defun org-chinese-utils-clean-useless-space (text backend info)
+(defconst org-chinese-utils-list
+  '((clean-paragraph-space
+     :document "删除中文段落中，中文之间多余的空格。"
+     :function org-chinese-utils:clean-useless-space
+     :hook org-export-filter-paragraph-functions)
+    (clean-headline-space
+     :document "删除中文标题中，中文之间多余的空格。"
+     :function org-chinese-utils:clean-useless-space
+     :hook org-export-filter-headline-functions)
+    (align-babel-table
+     :document "当 org-babel 输出一个 org 表格时，使这个表格对齐。"
+     :function org-chinese-utils:align-babel-table
+     :hook org-babel-after-execute-hook)
+    (smart-truncate-lines
+     :document "让 'C-c C-c' 可以根据光标处的内容，智能的折行。"
+     :function org-chinese-utils:smart-truncate-lines
+     :hook org-mode-hook))
+  "A list of utils that can be enabled.
+
+A utils is a plist, which form is like:
+
+  (NAME :document DOC :function FN :hook HOOK)
+
+NAME is a symbol, which can be passed to `org-chinese-utils-activate'.
+FN is a function which will be added to HOOK.")
+
+(defun org-chinese-utils:clean-useless-space (text backend info)
   "导出 org file 时，删除中文之间不必要的空格。"
   (when (or (org-export-derived-backend-p backend 'html)
             (memq backend '(odt)))
@@ -76,28 +102,30 @@
              "\\1\\2" string))
       string)))
 
-(defun org-chinese-utils-smart-truncate-lines (&optional arg)
-  "根据当前内容的特点智能折行，比如，在表格中禁止折行。"
-  (interactive "P")
-  (cond
-   ((or (and (boundp 'org-clock-overlays) org-clock-overlays)
-        org-occur-highlights)
-    (and (boundp 'org-clock-overlays) (org-clock-remove-overlays))
-    (org-remove-occur-highlights)
-    (org-remove-latex-fragment-image-overlays)
-    (message "Temporary highlights/overlays removed from current buffer"))
-   (t (let* ((context (org-element-context)) (type (org-element-type context)))
-        (case type
-          ((table table-cell table-row item plain-list)
-           (toggle-truncate-lines 1))
-          (t (toggle-truncate-lines -1)))))))
-
-(defun org-chinese-utils-ctrl-c-ctrl-c (&optional arg)
+(defun org-chinese-utils:smart-truncate-lines (&optional arg)
   (interactive)
-  (org-chinese-utils-smart-truncate-lines arg)
+  (org-defkey org-mode-map "\C-c\C-c" 'org-chinese-utils:ctrl-c-ctrl-c))
+
+(defun org-chinese-utils:ctrl-c-ctrl-c (&optional arg)
+  "根据光标处内容，智能折行，比如，在表格中禁止折行。"
+  (interactive "P")
+  (cond ((or (and (boundp 'org-clock-overlays)
+                  org-clock-overlays)
+             org-occur-highlights)
+         (and (boundp 'org-clock-overlays)
+              (org-clock-remove-overlays))
+         (org-remove-occur-highlights)
+         (org-remove-latex-fragment-image-overlays)
+         (message "Temporary highlights/overlays removed from current buffer"))
+        (t (let* ((context (org-element-context))
+                  (type (org-element-type context)))
+             (case type
+               ((table table-cell table-row item plain-list)
+                (toggle-truncate-lines 1))
+               (t (toggle-truncate-lines -1))))))
   (org-ctrl-c-ctrl-c arg))
 
-(defun org-chinese-utils-align-babel-output-table (&optional info)
+(defun org-chinese-utils:align-babel-table (&optional info)
   "Align all tables in the result of the current babel source."
   (interactive)
   (when (not org-export-current-backend)
@@ -113,20 +141,41 @@
                 (goto-char (org-table-end)))
               (forward-line))))))))
 
-(defun org-chinese-utils-enable ()
-  "Enable org-chinese-utils."
+(defun org-chinese-utils-activate (utils-list)
+  "Activate certain utils of org-chinese-utils.
+
+UTILS-LIST should be a list of utils (defined in `org-chinese-utils-list') which
+should be activated."
+  (dolist (utils utils-list)
+    (let* ((plist (cdr (assq utils org-chinese-utils-list)))
+           (fn (plist-get plist :function))
+           (hook (plist-get plist :hook)))
+      (when (and fn hook)
+        (add-hook hook fn)))))
+
+(defun org-chinese-utils-deactivate (utils-list)
+  "Deactivate certain utils of org-chinese-utils.
+
+This function is the opposite of `org-chinese-utils-deactive'.  UTILS-LIST
+should be a list of utils (defined in `org-chinese-utils-list') which should
+be activated."
+  (dolist (utils utils-list)
+    (let* ((plist (cdr (assq utils org-chinese-utils-list)))
+           (fn (plist-get plist :function))
+           (hook (plist-get plist :hook)))
+      (when (and fn hook)
+        (remove-hook hook fn)))))
+
+(defun org-chinese-utils-enable (&optional disable)
+  "Enable all org-chinese-utils, when DISABLE is t, disable all utils."
   (interactive)
-  (if (and (featurep 'org)
-           (featurep 'ox))
-      (progn (add-to-list 'org-export-filter-paragraph-functions
-                          #'org-chinese-utils-clean-useless-space)
-             (add-to-list 'org-export-filter-headline-functions
-                          #'org-chinese-utils-clean-useless-space)
-             (add-hook 'org-babel-after-execute-hook
-                       #'org-chinese-utils-align-babel-output-table)
-             (org-defkey org-mode-map "\C-c\C-c" 'org-chinese-utils-ctrl-c-ctrl-c)
-             (message "org-chinese-utils is enabled."))
-    (message "'org' or 'ox' is unavailable.")))
+  (let ((utils-list (mapcar 'car org-chinese-utils-list)))
+    (if (and (featurep 'org)
+             (featurep 'ox))
+        (if disable
+            (org-chinese-utils-deactivate utils-list)
+          (org-chinese-utils-activate utils-list))
+      (message "Package 'org' or 'ox' is unavailable."))))
 ;; #+END_SRC
 
 ;; * Footer
