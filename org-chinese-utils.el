@@ -88,6 +88,10 @@
     (visual-line-mode
      :document "打开 org 文件时，激活 visual-line-mode."
      :function org-chinese-utils:visual-line-mode
+     :hook org-mode-hook)
+    (org-cdlatex
+     :document "打开 org 文件时，激活 cdlatex 功能."
+     :function org-chinese-utils:org-cdlatex
      :hook org-mode-hook))
   "A list of utils that can be enabled.
 
@@ -286,6 +290,12 @@ be activated."
 (defun org-chinese-utils:show-babel-image ()
   (when (not org-export-current-backend)
     (org-display-inline-images)))
+
+(defun org-chinese-utils:org-cdlatex ()
+  (if (featurep 'cdlatex)
+      (turn-on-org-cdlatex)
+    (message "Fail to active org-cdlatex, you should load cdlatex first.")))
+
 ;; #+END_SRC
 
 ;; * Footer
