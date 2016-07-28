@@ -174,25 +174,29 @@ should be activated."
       (when (and fn hook)
         (add-hook hook fn)))))
 
-(defun org-chinese-utils-deactivate (utils-list)
+(defun org-chinese-utils-deactivate (&optional utils-list)
   "Deactivate certain utils of org-chinese-utils.
 
 This function is the opposite of `org-chinese-utils-deactive'.  UTILS-LIST
 should be a list of utils (defined in `org-chinese-utils-list') which should
 be activated."
-  (dolist (utils utils-list)
-    (let* ((plist (cdr (assq utils org-chinese-utils-list)))
-           (fn (plist-get plist :function))
-           (hook (plist-get plist :hook)))
-      (when (and fn hook)
-        (remove-hook hook fn)))))
+  (let ((utils-list (or utils-list (mapcar 'car org-chinese-utils-list))))
+    (dolist (utils utils-list)
+      (let* ((plist (cdr (assq utils org-chinese-utils-list)))
+             (fn (plist-get plist :function))
+             (hook (plist-get plist :hook)))
+        (when (and fn hook)
+          (remove-hook hook fn))))))
 
 (defun org-chinese-utils-enable ()
   "Enable all org-chinese-utils, when DISABLE is t, disable all utils."
   (interactive)
   (if (and (featurep 'org)
            (featurep 'ox))
-      (org-chinese-utils-activate org-chinese-utils-enabled)
+      (add-hook 'org-mode-hook
+                (lambda ()
+                  (org-chinese-utils-deactivate)
+                  (org-chinese-utils-activate org-chinese-utils-enabled)))
     (message "Package 'org' or 'ox' is unavailable.")))
 
 (defun org-chinese-utils:clean-useless-space (text backend info)
