@@ -84,7 +84,11 @@
     (show-babel-image
      :document "让 org-babel 运行结果中包含的图片链接自动显示。"
      :function org-chinese-utils:show-babel-image
-     :hook org-babel-after-execute-hook))
+     :hook org-babel-after-execute-hook)
+    (visual-line-mode
+     :document "打开 org 文件时，激活 visual-line-mode."
+     :function org-chinese-utils:visual-line-mode
+     :hook org-mode-hook))
   "A list of utils that can be enabled.
 
 A utils is a plist, which form is like:
@@ -99,7 +103,8 @@ FN is a function which will be added to HOOK.")
     clean-headline-space
     align-babel-table
     smart-truncate-lines
-    show-babel-image)
+    show-babel-image
+    visual-line-mode)
   "The utils of org-chinese-utils which will be activated.")
 
 (defvar org-chinese-utils-mode-map
@@ -271,6 +276,12 @@ be activated."
                 (org-table-align)
                 (goto-char (org-table-end)))
               (forward-line))))))))
+
+(defun org-chinese-utils:visual-line-mode ()
+  (setq visual-line-fringe-indicators '(nil nil))
+  (visual-line-mode)
+  (if visual-line-mode
+      (setq word-wrap nil)))
 
 (defun org-chinese-utils:show-babel-image ()
   (when (not org-export-current-backend)
