@@ -41,14 +41,25 @@
 ;; ** 使用
 ;; #+BEGIN_EXAMPLE
 ;; (require 'org)
-;; (require 'ox)
 ;; (require 'org-chinese-utils)
 ;; (org-chinese-utils-enable)
 ;; #+END_EXAMPLE
 
+;; ** 定制 org-chinese-utils
+;; 运行下面的命令，一个 utils 选择器就会弹出，用鼠标或者回车选择需要激活的 utils 就可以了。
+
+;; #+BEGIN_EXAMPLE
+;; M-x org-chinese-utils
+;; #+END_EXAMPLE
+
+;; [[./snapshots/org-chinese-utils.png]]
+
 ;;; Code:
 ;; * Code                                                                 :code:
 ;; #+BEGIN_SRC emacs-lisp
+(require 'cl-lib)
+(require 'cus-edit)
+
 (defgroup org-chinese-utils nil
   "Some org-mode utils for Chinese users."
   :group 'org)
@@ -78,6 +89,111 @@ A utils is a plist, which form is like:
 
 NAME is a symbol, which can be passed to `org-chinese-utils-activate'.
 FN is a function which will be added to HOOK.")
+
+(defvar org-chinese-utils-enabled (mapcar 'car org-chinese-utils-list))
+
+(defvar org-chinese-utils-mode-map
+  (let ((map (make-keymap)))
+    (set-keymap-parent map (make-composed-keymap widget-keymap
+                                                 special-mode-map))
+    (suppress-keymap map)
+    (define-key map "\C-x\C-s" 'org-chinese-utils-save-setting)
+    (define-key map "n" 'widget-forward)
+    (define-key map "p" 'widget-backward)
+    map)
+  "Keymap for `org-chinese-utils-mode'.")
+
+(define-derived-mode org-chinese-utils-mode special-mode "org-chinese-utils"
+  "Major mode for selecting org-chinese-utils.
+Do not call this mode function yourself.  It is meant for internal use."
+  (use-local-map org-chinese-utils-mode-map)
+  (custom--initialize-widget-variables)
+  (set (make-local-variable 'revert-buffer-function)
+       (lambda (_ignore-auto noconfirm)
+         (when (or noconfirm (y-or-n-p "Discard current choices? "))
+           (org-chinese-utils (current-buffer))))))
+(put 'org-chinese-utils-mode 'mode-class 'special)
+
+(defun org-chinese-utils (&optional buffer)
+  (interactive)
+  (switch-to-buffer (get-buffer-create (or buffer "*Org-chinese-utils chooser*")))
+  (let ((inhibit-read-only t))
+    (erase-buffer))
+  (org-chinese-utils-mode)
+  (widget-insert "Type RET or click to enable/disable utils of org-chinese-utils.\n\n")
+  (widget-create 'push-button
+                 :tag " Save settings! "
+                 :help-echo "Save the selected utils for future sessions."
+                 :action 'org-chinese-utils-save-setting)
+  (widget-insert "\n\nAvailable utils of org-chinese-utils:\n\n")
+  (let ((help-echo "mouse-2: Enable this utils for this session")
+        widget)
+    (dolist (utils (mapcar 'car org-chinese-utils-list))
+      (setq widget (widget-create 'checkbox
+                                  :value (memq utils org-chinese-utils-enabled)
+                                  :utils-name utils
+                                  :help-echo help-echo
+                                  :action 'org-chinese-utils-checkbox-toggle))
+      (widget-create-child-and-convert widget 'push-button
+                                       :button-face-get 'ignore
+                                       :mouse-face-get 'ignore
+                                       :value (format " %s" utils)
+                                       :action 'widget-parent-action
+                                       :help-echo help-echo)
+      (widget-insert " -- " (plist-get (cdr (assq utils org-chinese-utils-list))
+                                       :document)
+                     ?\n)))
+  (goto-char (point-min))
+  (widget-setup))
+
+(defun org-chinese-utils-save-setting (&rest _ignore)
+  (interactive)
+  (customize-save-variable
+   'org-chinese-utils-enabled org-chinese-utils-enabled)
+  (message "Setting of org-chinese-utils is saved."))
+
+(defun org-chinese-utils-checkbox-toggle (widget &optional event)
+  (let ((utils (widget-get widget :utils-name)))
+    (widget-toggle-action widget event)
+    (if (widget-value widget)
+        (progn (push utils org-chinese-utils-enabled)
+               (org-chinese-utils-activate (list utils)))
+      (setq org-chinese-utils-enabled
+            (remove utils org-chinese-utils-enabled))
+      (org-chinese-utils-deactivate (list utils)))))
+
+(defun org-chinese-utils-activate (utils-list)
+  "Activate certain utils of org-chinese-utils.
+
+UTILS-LIST should be a list of utils (defined in `org-chinese-utils-list') which
+should be activated."
+  (dolist (utils utils-list)
+    (let* ((plist (cdr (assq utils org-chinese-utils-list)))
+           (fn (plist-get plist :function))
+           (hook (plist-get plist :hook)))
+      (when (and fn hook)
+        (add-hook hook fn)))))
+
+(defun org-chinese-utils-deactivate (utils-list)
+  "Deactivate certain utils of org-chinese-utils.
+
+This function is the opposite of `org-chinese-utils-deactive'.  UTILS-LIST
+should be a list of utils (defined in `org-chinese-utils-list') which should
+be activated."
+  (dolist (utils utils-list)
+    (let* ((plist (cdr (assq utils org-chinese-utils-list)))
+           (fn (plist-get plist :function))
+           (hook (plist-get plist :hook)))
+      (when (and fn hook)
+        (remove-hook hook fn)))))
+
+(defun org-chinese-utils-enable ()
+  "Enable all org-chinese-utils, when DISABLE is t, disable all utils."
+  (interactive)
+  (if (and (featurep 'org)
+           (featurep 'ox))
+      (org-chinese-utils-activate org-chinese-utils-enabled)
+    (message "Package 'org' or 'ox' is unavailable.")))
 
 (defun org-chinese-utils:clean-useless-space (text backend info)
   "导出 org file 时，删除中文之间不必要的空格。"
@@ -141,41 +257,6 @@ FN is a function which will be added to HOOK.")
                 (goto-char (org-table-end)))
               (forward-line))))))))
 
-(defun org-chinese-utils-activate (utils-list)
-  "Activate certain utils of org-chinese-utils.
-
-UTILS-LIST should be a list of utils (defined in `org-chinese-utils-list') which
-should be activated."
-  (dolist (utils utils-list)
-    (let* ((plist (cdr (assq utils org-chinese-utils-list)))
-           (fn (plist-get plist :function))
-           (hook (plist-get plist :hook)))
-      (when (and fn hook)
-        (add-hook hook fn)))))
-
-(defun org-chinese-utils-deactivate (utils-list)
-  "Deactivate certain utils of org-chinese-utils.
-
-This function is the opposite of `org-chinese-utils-deactive'.  UTILS-LIST
-should be a list of utils (defined in `org-chinese-utils-list') which should
-be activated."
-  (dolist (utils utils-list)
-    (let* ((plist (cdr (assq utils org-chinese-utils-list)))
-           (fn (plist-get plist :function))
-           (hook (plist-get plist :hook)))
-      (when (and fn hook)
-        (remove-hook hook fn)))))
-
-(defun org-chinese-utils-enable (&optional disable)
-  "Enable all org-chinese-utils, when DISABLE is t, disable all utils."
-  (interactive)
-  (let ((utils-list (mapcar 'car org-chinese-utils-list)))
-    (if (and (featurep 'org)
-             (featurep 'ox))
-        (if disable
-            (org-chinese-utils-deactivate utils-list)
-          (org-chinese-utils-activate utils-list))
-      (message "Package 'org' or 'ox' is unavailable."))))
 ;; #+END_SRC
 
 ;; * Footer
