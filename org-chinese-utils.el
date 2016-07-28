@@ -120,6 +120,8 @@
            (featurep 'ox))
       (progn (add-to-list 'org-export-filter-paragraph-functions
                           #'org-chinese-utils-clean-useless-space)
+             (add-to-list 'org-export-filter-headline-functions
+                          #'org-chinese-utils-clean-useless-space)
              (add-hook 'org-babel-after-execute-hook
                        #'org-chinese-utils-align-babel-output-table)
              (org-defkey org-mode-map "\C-c\C-c" 'org-chinese-utils-ctrl-c-ctrl-c)
