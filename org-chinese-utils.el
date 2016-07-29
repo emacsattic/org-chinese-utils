@@ -132,6 +132,7 @@ A utils is a plist, which form is like:
 
 (defvar ocus-enabled-utils
   '(clean-paragraph-space
+    clean-headline-space
     align-babel-table
     smart-truncate-lines
     show-babel-image
@@ -272,12 +273,12 @@ should be a list of utils which should be activated."
       ;; 删除粗体之前的空格
       (setq string
             (replace-regexp-in-string
-             (format "\\(%s\\)[ \n]+\\(<\\)" regexp)
+             (format "\\(%s\\)[ ]+\\(<\\)" regexp)
              "\\1\\2" string))
       ;; 删除粗体之后的空格
       (setq string
             (replace-regexp-in-string
-             (format "\\(>\\)[ \n]+\\(%s\\)" regexp)
+             (format "\\(>\\)[ ]+\\(%s\\)" regexp)
              "\\1\\2" string))
       string)))
 
