@@ -299,7 +299,7 @@ should be a list of utils which should be activated."
          (message "Temporary highlights/overlays removed from current buffer"))
         (t (let* ((context (org-element-context))
                   (type (org-element-type context)))
-             (case type
+             (cl-case type
                ((table table-cell table-row item plain-list)
                 (toggle-truncate-lines 1))
                (t (toggle-truncate-lines -1))))))
