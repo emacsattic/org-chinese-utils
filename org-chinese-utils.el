@@ -72,7 +72,7 @@
 ;;       ocus-config)
 ;; #+END_EXAMPLE
 
-;; 如果用户想将自己的小工具集成到 org-chinese-utils, 可以到 https://github.com/tumashu/org-chinese-utils/issues
+;; 如果用户想将自己的小工具集成到 org-chinese-utils, 可以到 [[https://github.com/tumashu/org-chinese-utils/issues][这里]]
 ;; 提交 Issue. 并贴出小工具的的配置。
 
 ;;; Code:
