@@ -132,7 +132,6 @@ A utils is a plist, which form is like:
 
 (defvar ocus-enabled-utils
   '(clean-paragraph-space
-    clean-headline-space
     align-babel-table
     smart-truncate-lines
     show-babel-image

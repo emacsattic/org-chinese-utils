@@ -24,11 +24,15 @@ org-chinese-utils 是一个 org-mode 小工具管理器，可以方便 org-mode 
         (require 'org-chinese-utils)
         (org-chinese-utils-enable)
 
-## 设置<a id="orgheadline2"></a>运行下面的命令后，会弹出一个选择器，用户用鼠标或者回车选择需要激活的 utils 就可以了。
+## 设置<a id="orgheadline2"></a>
+
+运行下面的命令后，会弹出一个选择器，用户用鼠标或者回车选择需要激活的 utils 就可以了。
 
     M-x org-chinese-utils
 
-## 管理个人 utils<a id="orgheadline3"></a>用户可以使用 org-chinese-utils 管理自己的小工具，比如：
+## 管理个人 utils<a id="orgheadline3"></a>
+
+用户可以使用 org-chinese-utils 管理自己的小工具，比如：
 
     (add-hook 'org-mode-map 'my-hello-world)
     (defun my-hello-world ()
