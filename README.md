@@ -22,7 +22,7 @@ org-chinese-utils 是一个 org-mode 小工具管理器，可以方便 org-mode 
 
         (require 'org)
         (require 'org-chinese-utils)
-        (org-chinese-utils-enable)
+        (ocus-enable)
 
 ## 设置<a id="orgheadline2"></a>
 

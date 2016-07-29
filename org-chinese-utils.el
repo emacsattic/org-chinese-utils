@@ -43,7 +43,7 @@
 ;;    #+BEGIN_EXAMPLE
 ;;    (require 'org)
 ;;    (require 'org-chinese-utils)
-;;    (org-chinese-utils-enable)
+;;    (ocus-enable)
 ;;    #+END_EXAMPLE
 
 ;; ** 设置
