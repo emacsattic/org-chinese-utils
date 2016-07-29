@@ -1,4 +1,4 @@
-;;; org-chinese-utils.el --- Some org-mode utils for Chinese users
+;;; org-chinese-utils.el --- A org-mode utils manager for Chinese users
 
 ;; * Header
 ;; Copyright (c) 2016, Feng Shu
@@ -28,31 +28,52 @@
 
 ;;; Commentary:
 ;; * 介绍                                                             :README:
-;; org-chinese-utils 包含了以下工具，可以方便 org-mode 中文用户：
-;; 1. 将 org 导出为 HTML 时删除不必要的空格。
+;; org-chinese-utils 是一个 org-mode 小工具管理器，可以方便 org-mode 中文用户：
+;; 1. 将 org 文件导出为 HTML/ODT 文件时，删除不必要的空格。
 ;; 2. 按 'C-c C-c', 根据当前内容智能折行。
 ;; 3. 如果 org-babel 结果中包含表格时，对表格进行对齐处理。
+;; 4. ...
+
+;; [[./snapshots/org-chinese-utils.png]]
 
 ;; ** 安装
-;; org-chinese-utils is now available from the famous emacs package repo
-;; [[http://melpa.milkbox.net/][melpa]], so the recommended way is to install it
-;; through emacs package management system.
+;; 1. 配置melpa源，参考：http://melpa.org/#/getting-started
+;; 2. M-x package-install RET org-chinese-utils RET
+;; 3. 在emacs配置文件中（比如: ~/.emacs）添加如下代码：
+;;    #+BEGIN_EXAMPLE
+;;    (require 'org)
+;;    (require 'org-chinese-utils)
+;;    (org-chinese-utils-enable)
+;;    #+END_EXAMPLE
 
-;; ** 使用
-;; #+BEGIN_EXAMPLE
-;; (require 'org)
-;; (require 'org-chinese-utils)
-;; (org-chinese-utils-enable)
-;; #+END_EXAMPLE
-
-;; ** 定制 org-chinese-utils
-;; 运行下面的命令，一个 utils 选择器就会弹出，用鼠标或者回车选择需要激活的 utils 就可以了。
+;; ** 设置
+;; 运行下面的命令后，会弹出一个选择器，用户用鼠标或者回车选择需要激活的 utils 就可以了。
 
 ;; #+BEGIN_EXAMPLE
 ;; M-x org-chinese-utils
 ;; #+END_EXAMPLE
 
-;; [[./snapshots/org-chinese-utils.png]]
+;; ** 管理个人 utils
+;; 用户可以使用 org-chinese-utils 管理自己的小工具，比如：
+
+;; #+BEGIN_EXAMPLE
+;; (add-hook 'org-mode-map 'my-hello-world)
+;; (defun my-hello-world ()
+;;   (message "Hello world!"))
+;; #+END_EXAMPLE
+
+;; 可以转换为 org-chinese-utils 配置：
+
+;; #+BEGIN_EXAMPLE
+;; (push '(hello-world
+;;         :document "Hello world!"
+;;         :function my-hello-world
+;;         :hook org-mode-hook)
+;;       ocus-config)
+;; #+END_EXAMPLE
+
+;; 如果用户想将自己的小工具集成到 org-chinese-utils, 可以到 https://github.com/tumashu/org-chinese-utils/issues
+;; 提交 Issue. 并贴出小工具的的配置。
 
 ;;; Code:
 ;; * Code                                                                 :code:
@@ -64,45 +85,52 @@
   "Some org-mode utils for Chinese users."
   :group 'org)
 
-(defconst org-chinese-utils-list
-  '((clean-paragraph-space
-     :document "Org 文件导出为 HTML 或 odt 文件时，删除中文段落中多余的空格。"
-     :function org-chinese-utils:clean-useless-space
-     :hook org-export-filter-paragraph-functions)
-    (clean-headline-space
-     :document "Org 文件导出为 HTML 或 odt 文件时，删除中文标题中多余的空格。"
-     :function org-chinese-utils:clean-useless-space
-     :hook org-export-filter-headline-functions)
-    (align-babel-table
-     :document "让 org-babel 运行结果中包含的 org 表格对齐。"
-     :function org-chinese-utils:align-babel-table
-     :hook org-babel-after-execute-hook)
-    (smart-truncate-lines
-     :document "按 'C-c C-c' 快捷键时，根据光标处的内容智能折行。"
-     :function org-chinese-utils:smart-truncate-lines
-     :hook org-mode-hook)
-    (show-babel-image
-     :document "让 org-babel 运行结果中包含的图片链接自动显示。"
-     :function org-chinese-utils:show-babel-image
-     :hook org-babel-after-execute-hook)
-    (visual-line-mode
-     :document "打开 org 文件时，激活 visual-line-mode."
-     :function org-chinese-utils:visual-line-mode
-     :hook org-mode-hook)
-    (org-cdlatex
-     :document "打开 org 文件时，激活 cdlatex 功能."
-     :function org-chinese-utils:org-cdlatex
-     :hook org-mode-hook))
-  "A list of utils that can be enabled.
+(defcustom ocus-config nil
+  "A utils list that can be enabled or disabled
+by `org-chinese-utils'.
 
 A utils is a plist, which form is like:
 
-  (NAME :document DOC :function FN :hook HOOK)
+  (NAME :document DOC :function FUNC :hook HOOK)
 
-NAME is a symbol, which can be passed to `org-chinese-utils-activate'.
-FN is a function which will be added to HOOK.")
+1. NAME is a symbol, which can be passed to `ocus-activate'
+   or `ocus-deactivate'.
+2. FUNC is a function which will be added to HOOK.
+3. DOC will be showed in org-chinese-utils chooser."
+  :group 'org-chinese-utils)
 
-(defvar org-chinese-utils-enabled
+(defconst ocus-buildin-config
+  '((clean-paragraph-space
+     :document "Org 文件导出为 HTML 或 odt 文件时，删除中文段落中多余的空格。"
+     :function ocus:clean-useless-space
+     :hook org-export-filter-paragraph-functions)
+    (clean-headline-space
+     :document "Org 文件导出为 HTML 或 odt 文件时，删除中文标题中多余的空格。"
+     :function ocus:clean-useless-space
+     :hook org-export-filter-headline-functions)
+    (align-babel-table
+     :document "让 org-babel 运行结果中包含的 org 表格对齐。"
+     :function ocus:align-babel-table
+     :hook org-babel-after-execute-hook)
+    (smart-truncate-lines
+     :document "按 'C-c C-c' 快捷键时，根据光标处的内容智能折行。"
+     :function ocus:smart-truncate-lines
+     :hook org-mode-hook)
+    (show-babel-image
+     :document "让 org-babel 运行结果中包含的图片链接自动显示。"
+     :function ocus:show-babel-image
+     :hook org-babel-after-execute-hook)
+    (visual-line-mode
+     :document "打开 org 文件时，激活 visual-line-mode."
+     :function ocus:visual-line-mode
+     :hook org-mode-hook)
+    (org-cdlatex
+     :document "打开 org 文件时，激活 cdlatex 功能."
+     :function ocus:org-cdlatex
+     :hook org-mode-hook))
+  "This variable include buildin utils, which is similar to `ocus-config'.")
+
+(defvar ocus-enabled-utils
   '(clean-paragraph-space
     clean-headline-space
     align-babel-table
@@ -111,119 +139,127 @@ FN is a function which will be added to HOOK.")
     visual-line-mode)
   "The utils of org-chinese-utils which will be activated.")
 
-(defvar org-chinese-utils-mode-map
+(defvar ocus-mode-map
   (let ((map (make-keymap)))
     (set-keymap-parent map (make-composed-keymap widget-keymap
                                                  special-mode-map))
     (suppress-keymap map)
-    (define-key map "\C-x\C-s" 'org-chinese-utils-save-setting)
+    (define-key map "\C-x\C-s" 'ocus-save-setting)
     (define-key map "n" 'widget-forward)
     (define-key map "p" 'widget-backward)
     map)
-  "Keymap for `org-chinese-utils-mode'.")
+  "Keymap for `ocus-mode'.")
 
-(define-derived-mode org-chinese-utils-mode special-mode "org-chinese-utils"
+(define-derived-mode ocus-mode special-mode "OCUS"
   "Major mode for selecting org-chinese-utils.
 Do not call this mode function yourself.  It is meant for internal use."
-  (use-local-map org-chinese-utils-mode-map)
+  (use-local-map ocus-mode-map)
   (custom--initialize-widget-variables)
   (set (make-local-variable 'revert-buffer-function)
        (lambda (_ignore-auto noconfirm)
          (when (or noconfirm (y-or-n-p "Discard current choices? "))
-           (org-chinese-utils (current-buffer))))))
-(put 'org-chinese-utils-mode 'mode-class 'special)
+           (ocus (current-buffer))))))
+(put 'ocus-mode 'mode-class 'special)
 
 ;;;###autoload
-(defun org-chinese-utils (&optional buffer)
+(defalias 'org-chinese-utils 'ocus)
+;;;###autoload
+(defun ocus (&optional buffer)
   (interactive)
   (switch-to-buffer (get-buffer-create (or buffer "*Org-chinese-utils chooser*")))
   (let ((inhibit-read-only t))
     (erase-buffer))
-  (org-chinese-utils-mode)
+  (ocus-mode)
   (setq truncate-lines t)
   (widget-insert "Type RET or click to enable/disable utils of org-chinese-utils.\n\n")
   (widget-create 'push-button
                  :tag " Save settings! "
                  :help-echo "Save the selected utils for future sessions."
-                 :action 'org-chinese-utils-save-setting)
+                 :action 'ocus-save-setting)
   (widget-insert "\n\nAvailable utils of org-chinese-utils:\n\n")
   (let ((help-echo "mouse-2: Enable this utils for this session")
+        (config-list (ocus--return-all-config))
         widget)
-    (dolist (utils (mapcar 'car org-chinese-utils-list))
+    (dolist (utils (mapcar 'car config-list))
       (setq widget (widget-create 'checkbox
-                                  :value (memq utils org-chinese-utils-enabled)
+                                  :value (memq utils ocus-enabled-utils)
                                   :utils-name utils
                                   :help-echo help-echo
-                                  :action 'org-chinese-utils-checkbox-toggle))
+                                  :action 'ocus-checkbox-toggle))
       (widget-create-child-and-convert widget 'push-button
                                        :button-face-get 'ignore
                                        :mouse-face-get 'ignore
                                        :value (format " %s " utils)
                                        :action 'widget-parent-action
                                        :help-echo help-echo)
-      (widget-insert " -- " (plist-get (cdr (assq utils org-chinese-utils-list))
+      (widget-insert " -- " (plist-get (cdr (assq utils config-list))
                                        :document)
                      ?\n)))
   (goto-char (point-min))
   (widget-setup))
 
-(defun org-chinese-utils-save-setting (&rest _ignore)
+(defun ocus--return-all-config ()
+  `(,@ocus-config ,@ocus-buildin-config))
+
+(defun ocus-save-setting (&rest _ignore)
   (interactive)
   (customize-save-variable
-   'org-chinese-utils-enabled org-chinese-utils-enabled)
+   'ocus-enabled-utils ocus-enabled-utils)
   (message "Setting of org-chinese-utils is saved."))
 
-(defun org-chinese-utils-checkbox-toggle (widget &optional event)
+(defun ocus-checkbox-toggle (widget &optional event)
   (let ((utils (widget-get widget :utils-name)))
     (widget-toggle-action widget event)
     (if (widget-value widget)
-        (progn (push utils org-chinese-utils-enabled)
-               (org-chinese-utils-activate (list utils)))
-      (setq org-chinese-utils-enabled
-            (remove utils org-chinese-utils-enabled))
-      (org-chinese-utils-deactivate (list utils)))))
+        (progn (push utils ocus-enabled-utils)
+               (ocus-activate (list utils)))
+      (setq ocus-enabled-utils
+            (remove utils ocus-enabled-utils))
+      (ocus-deactivate (list utils)))))
 
 ;;;###autoload
-(defun org-chinese-utils-activate (utils-list)
+(defun ocus-activate (utils-list)
   "Activate certain utils of org-chinese-utils.
 
-UTILS-LIST should be a list of utils (defined in `org-chinese-utils-list') which
-should be activated."
+UTILS-LIST should be a list of utils which should be activated."
   (dolist (utils utils-list)
-    (let* ((plist (cdr (assq utils org-chinese-utils-list)))
+    (let* ((plist (cdr (assq utils (ocus--return-all-config))))
            (fn (plist-get plist :function))
            (hook (plist-get plist :hook)))
       (when (and fn hook)
         (add-hook hook fn)))))
 
 ;;;###autoload
-(defun org-chinese-utils-deactivate (&optional utils-list)
+(defun ocus-deactivate (&optional utils-list)
   "Deactivate certain utils of org-chinese-utils.
 
-This function is the opposite of `org-chinese-utils-deactive'.  UTILS-LIST
-should be a list of utils (defined in `org-chinese-utils-list') which should
-be activated."
-  (let ((utils-list (or utils-list (mapcar 'car org-chinese-utils-list))))
+This function is the opposite of `ocus-deactive'.  UTILS-LIST
+should be a list of utils which should be activated."
+  (let* ((config-list (ocus--return-all-config))
+         (utils-list (or utils-list (mapcar 'car config-list))))
     (dolist (utils utils-list)
-      (let* ((plist (cdr (assq utils org-chinese-utils-list)))
+      (let* ((plist (cdr (assq utils config-list)))
              (fn (plist-get plist :function))
              (hook (plist-get plist :hook)))
         (when (and fn hook)
           (remove-hook hook fn))))))
 
 ;;;###autoload
-(defun org-chinese-utils-enable ()
+(defalias 'org-chinese-utils-enable 'ocus-enable)
+
+;;;###autoload
+(defun ocus-enable ()
   "Enable all org-chinese-utils, when DISABLE is t, disable all utils."
   (interactive)
   (if (and (featurep 'org)
            (featurep 'ox))
       (add-hook 'org-mode-hook
                 (lambda ()
-                  (org-chinese-utils-deactivate)
-                  (org-chinese-utils-activate org-chinese-utils-enabled)))
+                  (ocus-deactivate)
+                  (ocus-activate ocus-enabled-utils)))
     (message "Package 'org' or 'ox' is unavailable.")))
 
-(defun org-chinese-utils:clean-useless-space (text backend info)
+(defun ocus:clean-useless-space (text backend info)
   "导出 org file 时，删除中文之间不必要的空格。"
   (when (or (org-export-derived-backend-p backend 'html)
             (memq backend '(odt)))
@@ -246,11 +282,11 @@ be activated."
              "\\1\\2" string))
       string)))
 
-(defun org-chinese-utils:smart-truncate-lines (&optional arg)
+(defun ocus:smart-truncate-lines (&optional arg)
   (interactive)
-  (org-defkey org-mode-map "\C-c\C-c" 'org-chinese-utils:ctrl-c-ctrl-c))
+  (org-defkey org-mode-map "\C-c\C-c" 'ocus:ctrl-c-ctrl-c))
 
-(defun org-chinese-utils:ctrl-c-ctrl-c (&optional arg)
+(defun ocus:ctrl-c-ctrl-c (&optional arg)
   "根据光标处内容，智能折行，比如，在表格中禁止折行。"
   (interactive "P")
   (cond ((or (and (boundp 'org-clock-overlays)
@@ -269,7 +305,7 @@ be activated."
                (t (toggle-truncate-lines -1))))))
   (org-ctrl-c-ctrl-c arg))
 
-(defun org-chinese-utils:align-babel-table (&optional info)
+(defun ocus:align-babel-table (&optional info)
   "Align all tables in the result of the current babel source."
   (interactive)
   (when (not org-export-current-backend)
@@ -285,17 +321,17 @@ be activated."
                 (goto-char (org-table-end)))
               (forward-line))))))))
 
-(defun org-chinese-utils:visual-line-mode ()
+(defun ocus:visual-line-mode ()
   (setq visual-line-fringe-indicators '(nil nil))
   (visual-line-mode)
   (if visual-line-mode
       (setq word-wrap nil)))
 
-(defun org-chinese-utils:show-babel-image ()
+(defun ocus:show-babel-image ()
   (when (not org-export-current-backend)
     (org-display-inline-images)))
 
-(defun org-chinese-utils:org-cdlatex ()
+(defun ocus:org-cdlatex ()
   (if (featurep 'cdlatex)
       (turn-on-org-cdlatex)
     (message "Fail to active org-cdlatex, you should load cdlatex first.")))
