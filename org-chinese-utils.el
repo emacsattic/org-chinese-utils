@@ -113,7 +113,7 @@ A utils is a plist, which form is like:
      :function ocus:align-babel-table
      :hook org-babel-after-execute-hook)
     (smart-truncate-lines
-     :document "按 'C-c C-c' 快捷键时，根据光标处的内容智能折行。"
+     :document "按 'C-c C-c' 快捷键时，根据光标处的内容智能折行，（禁用后需重启 emacs）。"
      :function ocus:smart-truncate-lines
      :hook org-mode-hook)
     (show-babel-image
@@ -121,11 +121,11 @@ A utils is a plist, which form is like:
      :function ocus:show-babel-image
      :hook org-babel-after-execute-hook)
     (visual-line-mode
-     :document "打开 org 文件时，激活 visual-line-mode."
+     :document "打开 org 文件时，激活 visual-line-mode, （禁用后需重启 emacs）。"
      :function ocus:visual-line-mode
      :hook org-mode-hook)
     (org-cdlatex
-     :document "打开 org 文件时，激活 cdlatex 功能."
+     :document "打开 org 文件时，激活 cdlatex 功能。"
      :function ocus:org-cdlatex
      :hook org-mode-hook))
   "This variable include buildin utils, which is similar to `ocus-config'.")
