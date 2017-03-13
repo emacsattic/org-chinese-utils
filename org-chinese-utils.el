@@ -78,7 +78,6 @@
 
 ;;; Code:
 ;; * Code                                                                 :code:
-;; #+BEGIN_SRC emacs-lisp
 (require 'cl-lib)
 (require 'cus-edit)
 
@@ -336,15 +335,14 @@ should be a list of utils which should be activated."
       (turn-on-org-cdlatex)
     (message "Fail to active org-cdlatex, you should load cdlatex first.")))
 
-;; #+END_SRC
 
 ;; * Footer
-;; #+BEGIN_SRC emacs-lisp
 (provide 'org-chinese-utils)
 
+;; #+BEGIN_EXAMPLE
 ;; Local Variables:
 ;; coding: utf-8-unix
 ;; End:
+;; #+END_EXAMPLE
 
 ;;; org-chinese-utils.el ends here
-;; #+END_SRC
