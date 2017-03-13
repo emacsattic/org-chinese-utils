@@ -1,22 +1,22 @@
-- [org-chinese-utils README](#orgcc1690c)
-  - [介绍](#orgda9861f)
-  - [安装](#org00ab549)
-  - [设置](#orgf588435)
-  - [管理个人 utils](#org08d5dfe)
+- [org-chinese-utils README](#orga68a64a)
+  - [介绍](#org078476e)
+  - [安装](#org4738d63)
+  - [设置](#org8245f32)
+  - [管理个人 utils](#org36d4c9f)
 
 
-<a id="orgcc1690c"></a>
+<a id="orga68a64a"></a>
 
 # org-chinese-utils README
 
 
-<a id="orgda9861f"></a>
+<a id="org078476e"></a>
 
 ## 介绍
 
 org-chinese-utils 是一个 org-mode 小工具管理器，可以方便 org-mode 中文用户：
 
-1.  将 org 文件导出为 HTML/ODT 文件时，删除不必要的空格。
+1.  将 org 文件导出为 HTML 文件时，删除不必要的空格。
 2.  按 'C-c C-c', 根据当前内容智能折行。
 3.  如果 org-babel 结果中包含表格时，对表格进行对齐处理。
 4.  &#x2026;
@@ -24,7 +24,7 @@ org-chinese-utils 是一个 org-mode 小工具管理器，可以方便 org-mode 
 ![img](./snapshots/org-chinese-utils.png)
 
 
-<a id="org00ab549"></a>
+<a id="org4738d63"></a>
 
 ## 安装
 
@@ -37,7 +37,7 @@ org-chinese-utils 是一个 org-mode 小工具管理器，可以方便 org-mode 
         (ocus-enable)
 
 
-<a id="orgf588435"></a>
+<a id="org8245f32"></a>
 
 ## 设置
 
@@ -46,7 +46,7 @@ org-chinese-utils 是一个 org-mode 小工具管理器，可以方便 org-mode 
     M-x org-chinese-utils
 
 
-<a id="org08d5dfe"></a>
+<a id="org36d4c9f"></a>
 
 ## 管理个人 utils
 

@@ -30,7 +30,7 @@
 ;; * org-chinese-utils README                                 :README:
 ;; ** 介绍
 ;; org-chinese-utils 是一个 org-mode 小工具管理器，可以方便 org-mode 中文用户：
-;; 1. 将 org 文件导出为 HTML/ODT 文件时，删除不必要的空格。
+;; 1. 将 org 文件导出为 HTML 文件时，删除不必要的空格。
 ;; 2. 按 'C-c C-c', 根据当前内容智能折行。
 ;; 3. 如果 org-babel 结果中包含表格时，对表格进行对齐处理。
 ;; 4. ...
@@ -101,11 +101,11 @@ A utils is a plist, which form is like:
 
 (defconst ocus-buildin-config
   '((clean-paragraph-space
-     :document "Org 文件导出为 HTML 或 odt 文件时，删除中文段落中多余的空格。"
+     :document "Org 文件导出为 HTML 文件时，删除中文段落中多余的空格。"
      :function ocus:clean-useless-space
      :hook org-export-filter-paragraph-functions)
     (clean-headline-space
-     :document "Org 文件导出为 HTML 或 odt 文件时，删除中文标题中多余的空格。"
+     :document "Org 文件导出为 HTML 文件时，删除中文标题中多余的空格。"
      :function ocus:clean-useless-space
      :hook org-export-filter-headline-functions)
     (align-babel-table
@@ -260,8 +260,7 @@ should be a list of utils which should be activated."
 
 (defun ocus:clean-useless-space (text backend info)
   "导出 org file 时，删除中文之间不必要的空格。"
-  (when (or (org-export-derived-backend-p backend 'html)
-            (memq backend '(odt)))
+  (when (org-export-derived-backend-p backend 'html)
     (let ((regexp "[[:multibyte:]]")
           (string text))
       ;; org-mode 默认将一个换行符转换为空格，但中文不需要这个空格，删除。
