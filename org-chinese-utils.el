@@ -269,16 +269,18 @@ should be a list of utils which should be activated."
             (replace-regexp-in-string
              (format "\\(%s\\) *\n *\\(%s\\)" regexp regexp)
              "\\1\\2" string))
-      ;; 删除粗体之前的空格
-      (setq string
-            (replace-regexp-in-string
-             (format "\\(%s\\)[ ]+\\(<\\)" regexp)
-             "\\1\\2" string))
       ;; 删除粗体之后的空格
-      (setq string
-            (replace-regexp-in-string
-             (format "\\(>\\)[ ]+\\(%s\\)" regexp)
-             "\\1\\2" string))
+      (dolist (str '("</b>" "</code>" "</del>" "</i>"))
+        (setq string
+              (replace-regexp-in-string
+               (format "\\(%s\\)\\(%s\\)[ ]+\\(%s\\)" regexp str regexp)
+               "\\1\\2\\3" string)))
+      ;; 删除粗体之前的空格
+      (dolist (str '("<b>" "<code>" "<del>" "<i>" "<span class=\"underline\">"))
+        (setq string
+              (replace-regexp-in-string
+               (format "\\(%s\\)[ ]+\\(%s\\)\\(%s\\)" regexp str regexp)
+               "\\1\\2\\3" string)))
       string)))
 
 (defun ocus:smart-truncate-lines (&optional arg)
