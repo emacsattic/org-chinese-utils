@@ -340,10 +340,8 @@ should be a list of utils which should be activated."
 ;; * Footer
 (provide 'org-chinese-utils)
 
-;; #+BEGIN_EXAMPLE
 ;; Local Variables:
 ;; coding: utf-8-unix
 ;; End:
-;; #+END_EXAMPLE
 
 ;;; org-chinese-utils.el ends here
